@@ -12,19 +12,22 @@ const allowedOrigins = [
   'http://localhost:8080',
   'http://localhost:5173',
   'https://doc-hub-oj1b.vercel.app',
-  process.env.FRONTEND_URL // Add your production frontend URL here
+  'https://doc-hub-oj1b.vercel.app/', // Add trailing slash version just in case
+  process.env.FRONTEND_URL
 ].filter(Boolean);
 
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      // For development, you might want to allow all, but for production be specific
-      return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'), false);
-      // return callback(null, true); // Temporarily allow all for easier deployment testing
+    
+    // Check if the origin is in the allowed list
+    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.some(o => origin.startsWith(o))) {
+      return callback(null, true);
     }
-    return callback(null, true);
+    
+    console.log('Blocked Origin:', origin); // Log blocked origins for debugging
+    return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'), false);
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']

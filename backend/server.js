@@ -8,27 +8,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-const allowedOrigins = [
-  'http://localhost:8080',
-  'http://localhost:5173',
-  'https://doc-hub-oj1b.vercel.app',
-  'https://doc-hub-oj1b.vercel.app/', // Add trailing slash version just in case
-  process.env.FRONTEND_URL
-].filter(Boolean);
-
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // Check if the origin is in the allowed list
-    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.some(o => origin.startsWith(o))) {
-      return callback(null, true);
-    }
-    
-    console.log('Blocked Origin:', origin); // Log blocked origins for debugging
-    return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'), false);
-  },
+  origin: '*', // Allow all origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));

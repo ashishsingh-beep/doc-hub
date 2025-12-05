@@ -11,6 +11,7 @@ const PORT = process.env.PORT || 3000;
 const allowedOrigins = [
   'http://localhost:8080',
   'http://localhost:5173',
+  'https://doc-hub-oj1b.vercel.app',
   process.env.FRONTEND_URL // Add your production frontend URL here
 ].filter(Boolean);
 
@@ -20,8 +21,8 @@ app.use(cors({
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) === -1) {
       // For development, you might want to allow all, but for production be specific
-      // return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'), false);
-      return callback(null, true); // Temporarily allow all for easier deployment testing
+      return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'), false);
+      // return callback(null, true); // Temporarily allow all for easier deployment testing
     }
     return callback(null, true);
   },

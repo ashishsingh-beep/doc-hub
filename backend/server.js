@@ -18,17 +18,7 @@ app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ MySQL connection setup
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT || 3306,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  ssl: {
-    minVersion: 'TLSv1.2',
-    rejectUnauthorized: true
-  }
-});
+const db = require("./config/database");
 
 // ✅ Import route files
 const authRoutes = require("./routes/auth"); // Adjust path to your auth.js file
@@ -45,24 +35,24 @@ app.use("/api/categories", categoriesRoutes);
 app.use("/api/stats", statsRoutes);
 
 // ✅ Test DB connection route
-app.get("/api/test-db", (req, res) => {
+app.get("/api/test-db", async (req, res) => {
   console.log("Testing database connection...");
-  db.query("SELECT 1 as test", (err, result) => {
-    if (err) {
-      console.error("DB connection error:", err.message);
-      return res.status(500).json({
-        success: false,
-        error: err.message,
-        details: "Check your database credentials and connection",
-      });
-    }
+  try {
+    const [result] = await db.query("SELECT 1 as test");
     console.log("Database connected successfully!");
     res.json({
       success: true,
       message: "Database connected successfully",
       result: result[0],
     });
-  });
+  } catch (err) {
+    console.error("DB connection error:", err.message);
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+      details: "Check your database credentials and connection",
+    });
+  }
 });
 
 // Test root route
@@ -122,7 +112,7 @@ const server = app.listen(PORT, () => {
 process.on("SIGINT", () => {
   console.log("\nReceived SIGINT, shutting down gracefully");
   server.close(() => {
-    db.end();
+    db.end(); // Close the pool
     console.log("Server and database connections closed");
     process.exit(0);
   });
@@ -131,7 +121,7 @@ process.on("SIGINT", () => {
 process.on("SIGTERM", () => {
   console.log("Received SIGTERM, shutting down gracefully");
   server.close(() => {
-    db.end();
+    db.end(); // Close the pool
     console.log("Server and database connections closed");
     process.exit(0);
   });
